@@ -56,7 +56,6 @@
 <body>
 <div class="wrap">
   <h1>How Engagement &amp; Followers <span class="a">Shift</span> <span class="b">Influencer Strategy</span></h1>
-  <p class="q">Research question: How do TikTok engagement metrics (likes, comments, follower counts) shift the content strategies of top-ranked influencers? This explores 1,000 top-ranked TikTok creators &mdash; how their <b>engagement efficiency</b> and <b>interaction mix</b> (likes vs comments vs shares) change as their following grows from rising creator to mega-influencer.</p>
   <div class="note" id="dataNote"></div>
   <div class="note" id="critNote" style="border-left-color:#ff0050"></div>
 
@@ -97,18 +96,6 @@
     <div class="takeaway" id="tierTakeaway"></div>
   </div>
 
-  <div class="grid">
-    <div class="card">
-      <h2>Followers vs. engagement rate</h2>
-      <p>Each dot is one influencer (follower count on a log scale). Shows whether a bigger audience dilutes or concentrates engagement.</p>
-      <div class="chartbox"><canvas id="scatterChart"></canvas></div>
-    </div>
-    <div class="card">
-      <h2>Interaction mix by tier &mdash; the cost of visibility</h2>
-      <p>Share of interactions that are likes, comments, or shares. As followings grow, engagement becomes more <b>passive</b> (likes dominate) and less <b>conversational</b> (comments) or <b>amplifying</b> (shares) &mdash; visibility traded for genuine interaction.</p>
-      <div class="chartbox"><canvas id="mixChart"></canvas></div>
-    </div>
-  </div>
 
   <div class="card full">
     <h2>Conversation vs. amplification per 1,000 views</h2>
@@ -162,7 +149,7 @@ const DATA = [{"rank": 1, "account": "billieeilish", "title": "BILLIE EILISH", "
     "All metrics are per-creator averages. Engagement rate = (likes + comments + shares) / views &times; 100.";
 
   let metric='engRate';
-  let tierChart,scatterChart,mixChart,depthChart;
+  let tierChart,depthChart;
 
   function filtered(){
     const t=tSel.value, rk=document.getElementById('fRank').value;
@@ -219,35 +206,6 @@ const DATA = [{"rank": 1, "account": "billieeilish", "title": "BILLIE EILISH", "
     } else {
       document.getElementById('tierTakeaway').textContent='Widen the filters to compare across follower tiers.';
     }
-
-    // scatter followers vs engagement rate
-    if(scatterChart)scatterChart.destroy();
-    const ds=tiers.map(k=>({label:TIERS.find(t=>t.k===k).label,
-      data:rows.filter(r=>tierOf(r)===k).map(r=>({x:r.subs,y:engRate(r),acct:r.account})),
-      backgroundColor:TCOL[k]+'cc',pointRadius:3,pointHoverRadius:5}));
-    scatterChart=new Chart(document.getElementById('scatterChart'),{type:'scatter',data:{datasets:ds},
-      options:{responsive:true,maintainAspectRatio:false,
-        plugins:{legend:{labels:{color:'#a6a8c9',font:{size:10},boxWidth:10,usePointStyle:true}},
-          tooltip:{callbacks:{label:c=>'@'+c.raw.acct+': '+nf(c.parsed.x)+' followers, '+c.parsed.y.toFixed(2)+'% eng.'}}},
-        scales:{x:{type:'logarithmic',title:{display:true,text:'Followers (log)',color:'#a6a8c9'},grid:{color:'#2c2d4d'},ticks:{color:'#a6a8c9',callback:v=>nf(v)}},
-          y:{title:{display:true,text:'Engagement rate (%)',color:'#a6a8c9'},grid:{color:'#2c2d4d'},ticks:{color:'#a6a8c9',callback:v=>v+'%'}}}}});
-
-    // interaction mix (stacked % likes/comments/shares)
-    const mix=groups.map(g=>{
-      const L=g.reduce((s,r)=>s+r.likes,0),C=g.reduce((s,r)=>s+r.comments,0),S=g.reduce((s,r)=>s+r.shares,0);
-      const tot=L+C+S||1;return {L:L/tot*100,C:C/tot*100,S:S/tot*100};
-    });
-    if(mixChart)mixChart.destroy();
-    mixChart=new Chart(document.getElementById('mixChart'),{type:'bar',
-      data:{labels,datasets:[
-        {label:'Likes %',data:mix.map(m=>m.L),backgroundColor:'#ff0050',stack:'s'},
-        {label:'Comments %',data:mix.map(m=>m.C),backgroundColor:'#ffd166',stack:'s'},
-        {label:'Shares %',data:mix.map(m=>m.S),backgroundColor:'#3ddc97',stack:'s'}]},
-      options:{responsive:true,maintainAspectRatio:false,
-        plugins:{legend:{labels:{color:'#a6a8c9',font:{size:11},boxWidth:12}},
-          tooltip:{callbacks:{label:c=>c.dataset.label+': '+c.parsed.y.toFixed(2)+'%'}}},
-        scales:{x:{stacked:true,grid:{color:'#2c2d4d'},ticks:{color:'#a6a8c9'}},
-          y:{stacked:true,max:100,grid:{color:'#2c2d4d'},ticks:{color:'#a6a8c9',callback:v=>v+'%'}}}}});
 
     // depth: comments & shares per 1k views
     const cpm=groups.map(g=>median(g.map(r=>r.comments/Math.max(1,r.views)*1000)));
